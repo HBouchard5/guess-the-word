@@ -1,16 +1,16 @@
-const guessedLetters = document.querySelector(".guessed-letters");
-const guessButton = document.querySelector(".guess");
-const textInput = document.querySelector(".letter");
-const wordInProgress = document.querySelector(".word-in-progress");
-const remainingText = document.querySelector(".remaining");
-const remainingNumber = document.querySelector("span");
-const guessMessage = document.querySelector(".message");
-const playAgain = document.querySelector(".play-again");
+const guessedLetters = document.querySelector(".guessed-letters");  //displays all guessed letters
+const guessButton = document.querySelector(".guess");       //Guess letter button
+const textInput = document.querySelector(".letter");        //Player guess letter input box
+const wordInProgress = document.querySelector(".word-in-progress");     //displays game word in progress
+const remainingText = document.querySelector(".remaining");     //<p> to display the remaining guess counter
+const remainingNumber = document.querySelector("span");     //<span> guess remaining counter
+const guessMessage = document.querySelector(".message");    //<p> to display a message after player submits a guess
+const playAgain = document.querySelector(".play-again");    //Play Again button
 
-let word = "magnolia";
-const guessedLettersArray = [];
-let remainingGuesses = 8;
-
+//define global variables
+let word = "magnolia";          //define initial word
+let guessedLettersArray = [];   //define empty array of guessed letters
+let remainingGuesses = 8;       //define number of allowed wrong guesses
 
 //Fetch word from API text file
 const getWord = async function() {
@@ -18,15 +18,12 @@ const getWord = async function() {
         'https://gist.githubusercontent.com/skillcrush-curriculum/7061f1d4d3d5bfe47efbfbcfe42bf57e/raw/5ffc447694486e7dea686f34a6c085ae371b43fe/words.txt'
     );
     const data = await res.text();
-    //console.log(data);
-
-    const wordArray = data.split("\n");
-    //console.log(wordArray);
+    const wordArray = data.split("\n");     //convert text string to array of words
     const randomIndex = Math.floor(Math.random()*wordArray.length);
-    word = wordArray[randomIndex].trim();
-    createCircles(word);
+    word = wordArray[randomIndex].trim();   //select a random word
+    createCircles(word);    //call function to populate the game word with circle placeholders
+    console.log(word.toUpperCase());
 };
-//getWord(); 
 
 //function to populate game word with circles as placeholders
 const createCircles = function(gameWord) {
@@ -36,7 +33,6 @@ const createCircles = function(gameWord) {
     }
     let displayWord = wordArray.join("");
     wordInProgress.innerText = displayWord;
-    console.log(displayWord);
 };
 
 //function to validate user input as a single letter
@@ -64,9 +60,6 @@ const makeGuess = function(letter) {
         guessCounter(upperLetter);   //call function to update guesses remaining
         updateWIP(guessedLettersArray); //call function to update WIP
     }
-    console.log(guessedLettersArray);
-    //updateWIP(guessedLettersArray); //call function to update WIP
-    //guessCounter(letter); //call function to update guesses remaining
 };
 
 //function to display wrongly guessed letters
@@ -105,7 +98,6 @@ const updateWIP = function(guessedArray) {
 //function to count remaining guesses
 const guessCounter = function(newGuess) {
     const wordUpper = word.toUpperCase();
-    console.log(wordUpper);
 
     //Reduce guess counter if guessed letter is not in the word
     if (wordUpper.includes(newGuess)) {
@@ -117,6 +109,7 @@ const guessCounter = function(newGuess) {
         if (remainingGuesses == 0) {
             guessMessage.innerHTML = `Sorry, game over! The word was ${word.toUpperCase()}`;
             remainingNumber.innerHTML = `${remainingGuesses} guesses`;
+            startOver();
         } else if (remainingGuesses == 1) {
             remainingNumber.innerHTML = "1 guess";
         } else {
@@ -131,9 +124,9 @@ const wonGame = function(WIP) {
     if (WIP == checkWord) {
         guessMessage.classList.add("win");
         guessMessage.innerHTML = "You guessed correct the word! Congrats!";
+        startOver();
     } 
 };
-
 
 //call function to get new random word
 getWord();
@@ -144,8 +137,7 @@ guessButton.addEventListener("click", function(e){
     
     let inputVal = textInput.value;     //get user input from text box
     guessMessage.innerHTML = "";       //clear the displayed user message
-    let userLetter = validateInput(inputVal);  //check that the user input a single letter
-    console.log(userLetter);  
+    let userLetter = validateInput(inputVal);  //check that the user input a single letter  
     
     //process guess only if the input is a validated letter
     if (userLetter != undefined) {
@@ -156,5 +148,34 @@ guessButton.addEventListener("click", function(e){
     textInput.value = "";
 });
 
+//function to start game over again
+const startOver = function() {
+    //hide elements from last game
+    guessButton.classList.add("hide");
+    remainingText.classList.add("hide");
+    guessedLetters.classList.add("hide");
+
+    //reveal button to play again
+    playAgain.classList.remove("hide");
+};
+
+//event handler for Play Again button click
+playAgain.addEventListener("click", function(){
+    //reset messages and counters
+    guessMessage.classList.remove("win");
+    guessMessage.innerText = "";
+    guessedLettersArray = [];
+    guessedLetters.innerText = "";
+    remainingGuesses = 8;
+    remainingNumber.innerHTML = `${remainingGuesses} guesses`;
+
+    guessButton.classList.remove("hide");       //show the guess button 
+    remainingText.classList.remove("hide");     //show the guess counter
+    guessedLetters.classList.remove("hide");    //show the guessed letters array
+    
+    playAgain.classList.add("hide");    //hide the Play Again button
+
+    getWord();      //get new random word
+});
 
 
