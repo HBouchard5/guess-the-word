@@ -7,8 +7,26 @@ const remainingNumber = document.querySelector("span");
 const guessMessage = document.querySelector(".message");
 const playAgain = document.querySelector(".play-again");
 
-const word = "magnolia";
+let word = "magnolia";
 const guessedLettersArray = [];
+let remainingGuesses = 8;
+
+
+//Fetch word from API text file
+const getWord = async function() {
+    const res = await fetch(
+        'https://gist.githubusercontent.com/skillcrush-curriculum/7061f1d4d3d5bfe47efbfbcfe42bf57e/raw/5ffc447694486e7dea686f34a6c085ae371b43fe/words.txt'
+    );
+    const data = await res.text();
+    //console.log(data);
+
+    const wordArray = data.split("\n");
+    //console.log(wordArray);
+    const randomIndex = Math.floor(Math.random()*wordArray.length);
+    word = wordArray[randomIndex].trim();
+    createCircles(word);
+};
+//getWord(); 
 
 //function to populate game word with circles as placeholders
 const createCircles = function(gameWord) {
@@ -43,9 +61,12 @@ const makeGuess = function(letter) {
     } else {
         guessedLettersArray.push(upperLetter);  //add guess to Array
         showGuessedLetters();       //display updated list of guessed letters
+        guessCounter(upperLetter);   //call function to update guesses remaining
+        updateWIP(guessedLettersArray); //call function to update WIP
     }
     console.log(guessedLettersArray);
-    updateWIP(guessedLettersArray); //call function to update WIP
+    //updateWIP(guessedLettersArray); //call function to update WIP
+    //guessCounter(letter); //call function to update guesses remaining
 };
 
 //function to display wrongly guessed letters
@@ -77,7 +98,31 @@ const updateWIP = function(guessedArray) {
     }
     const mixedWord = mixedArray.join("");  //convert WIP array to string
     wordInProgress.innerText = mixedWord;   //display WIP on screen
+
     wonGame(mixedWord);  //check if the user has won the game yet
+};
+
+//function to count remaining guesses
+const guessCounter = function(newGuess) {
+    const wordUpper = word.toUpperCase();
+    console.log(wordUpper);
+
+    //Reduce guess counter if guessed letter is not in the word
+    if (wordUpper.includes(newGuess)) {
+        guessMessage.innerHTML = `Yes! The letter ${newGuess} is in the word!`;
+    } else {
+        remainingGuesses -= 1;
+        guessMessage.innerHTML = `The word does not contain ${newGuess}.`;
+         //Check if 1 or 0 guesses remain, update message with guess counter
+        if (remainingGuesses == 0) {
+            guessMessage.innerHTML = `Sorry, game over! The word was ${word.toUpperCase()}`;
+            remainingNumber.innerHTML = `${remainingGuesses} guesses`;
+        } else if (remainingGuesses == 1) {
+            remainingNumber.innerHTML = "1 guess";
+        } else {
+            remainingNumber.innerHTML = `${remainingGuesses} guesses`;
+        }
+    }
 };
 
 //function to check if the user has won the game
@@ -89,8 +134,9 @@ const wonGame = function(WIP) {
     } 
 };
 
-//call function to populate initial circles
-createCircles(word);
+
+//call function to get new random word
+getWord();
 
 //get user input (guess letter) on button click
 guessButton.addEventListener("click", function(e){
